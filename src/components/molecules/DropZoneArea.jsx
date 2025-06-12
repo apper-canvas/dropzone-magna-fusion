@@ -1,8 +1,8 @@
-import { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { motion } from 'framer-motion';
-import ApperIcon from './ApperIcon';
+import ApperIcon from '@/components/ApperIcon';
 
-const DropZone = ({ onFilesSelected, allowedTypes, fileInputRef }) => {
+const DropZoneArea = ({ onFilesSelected, allowedTypes, fileInputRef }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [dragCounter, setDragCounter] = useState(0);
 
@@ -170,4 +170,4 @@ const DropZone = ({ onFilesSelected, allowedTypes, fileInputRef }) => {
   );
 };
 
-export default DropZone;
+export default DropZoneArea;

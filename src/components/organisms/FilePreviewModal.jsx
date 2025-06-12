@@ -1,8 +1,9 @@
+import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { useEffect } from 'react';
-import ApperIcon from './ApperIcon';
+import ApperIcon from '@/components/ApperIcon';
+import { formatFileSize } from '@/utils/fileUtils';
 
-const FilePreview = ({ file, onClose }) => {
+const FilePreviewModal = ({ file, onClose }) => {
   useEffect(() => {
     const handleEscape = (e) => {
       if (e.key === 'Escape') {
@@ -18,14 +19,6 @@ const FilePreview = ({ file, onClose }) => {
       document.body.style.overflow = 'unset';
     };
   }, [onClose]);
-
-  const formatFileSize = (bytes) => {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-  };
 
   const isImage = file.type.startsWith('image/');
 
@@ -136,4 +129,4 @@ const FilePreview = ({ file, onClose }) => {
   );
 };
 
-export default FilePreview;
+export default FilePreviewModal;

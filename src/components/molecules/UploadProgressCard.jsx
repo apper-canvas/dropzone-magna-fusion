@@ -1,66 +1,13 @@
+import React from 'react';
 import { motion } from 'framer-motion';
-import ApperIcon from './ApperIcon';
+import ApperIcon from '@/components/ApperIcon';
+import ProgressBar from '@/components/atoms/ProgressBar';
+import { formatFileSize, formatSpeed, getEstimatedTime, getStatusIconName, getStatusColorClass } from '@/utils/fileUtils';
 
-const UploadProgress = ({ session }) => {
+const UploadProgressCard = ({ session }) => {
   const getProgressPercentage = () => {
     if (session.totalSize === 0) return 0;
     return Math.round((session.uploadedSize / session.totalSize) * 100);
-  };
-
-  const getUploadSpeed = () => {
-    const elapsed = (new Date() - session.startTime) / 1000; // seconds
-    if (elapsed === 0) return 0;
-    return session.uploadedSize / elapsed; // bytes per second
-  };
-
-  const formatSpeed = (bytesPerSecond) => {
-    if (bytesPerSecond === 0) return '0 B/s';
-    const k = 1024;
-    const sizes = ['B/s', 'KB/s', 'MB/s', 'GB/s'];
-    const i = Math.floor(Math.log(bytesPerSecond) / Math.log(k));
-    return parseFloat((bytesPerSecond / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
-  };
-
-  const formatFileSize = (bytes) => {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
-  };
-
-  const getEstimatedTime = () => {
-    const speed = getUploadSpeed();
-    if (speed === 0) return 'Calculating...';
-    
-    const remainingBytes = session.totalSize - session.uploadedSize;
-    const remainingSeconds = remainingBytes / speed;
-    
-    if (remainingSeconds < 60) {
-      return `${Math.ceil(remainingSeconds)}s remaining`;
-    } else if (remainingSeconds < 3600) {
-      return `${Math.ceil(remainingSeconds / 60)}m remaining`;
-    } else {
-      return `${Math.ceil(remainingSeconds / 3600)}h remaining`;
-    }
-  };
-
-  const getStatusIcon = () => {
-    switch (session.status) {
-      case 'uploading': return 'Upload';
-      case 'completed': return 'CheckCircle2';
-      case 'error': return 'AlertCircle';
-      default: return 'Clock';
-    }
-  };
-
-  const getStatusColor = () => {
-    switch (session.status) {
-      case 'uploading': return 'text-primary';
-      case 'completed': return 'text-green-500';
-      case 'error': return 'text-red-500';
-      default: return 'text-surface-500';
-    }
   };
 
   const progressPercentage = getProgressPercentage();
@@ -75,8 +22,8 @@ const UploadProgress = ({ session }) => {
         <div className="flex items-center space-x-3">
           <div className={`p-2 rounded-full ${session.status === 'completed' ? 'bg-green-100' : session.status === 'error' ? 'bg-red-100' : 'bg-blue-100'}`}>
             <ApperIcon 
-              name={getStatusIcon()} 
-              className={`w-5 h-5 ${getStatusColor()}`}
+              name={getStatusIconName(session.status)} 
+              className={`w-5 h-5 ${getStatusColorClass(session.status)}`}
             />
           </div>
           <div>
@@ -103,27 +50,7 @@ const UploadProgress = ({ session }) => {
 
       {/* Main Progress Bar */}
       <div className="mb-4">
-        <div className="w-full bg-surface-200 rounded-full h-3 overflow-hidden">
-          <motion.div
-            initial={{ width: 0 }}
-            animate={{ width: `${progressPercentage}%` }}
-            transition={{ duration: 0.5 }}
-            className="h-full bg-gradient-to-r from-primary via-secondary to-accent rounded-full relative"
-          >
-            {session.status === 'uploading' && (
-              <motion.div
-                animate={{ x: ['-100%', '100%'] }}
-                transition={{ 
-                  duration: 2, 
-                  repeat: Infinity, 
-                  ease: 'linear' 
-                }}
-                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent"
-                style={{ width: '100px' }}
-              />
-            )}
-          </motion.div>
-        </div>
+        <ProgressBar progress={progressPercentage} status={session.status} />
       </div>
 
       {/* Upload Stats */}
@@ -137,14 +64,14 @@ const UploadProgress = ({ session }) => {
         
         <div className="text-center p-3 bg-white/40 rounded-lg">
           <div className="font-semibold text-surface-800">
-            {formatSpeed(getUploadSpeed())}
+            {formatSpeed(session.uploadedSize / ((new Date() - session.startTime) / 1000 || 1))}
           </div>
           <div className="text-surface-600">Upload speed</div>
         </div>
         
         <div className="text-center p-3 bg-white/40 rounded-lg">
           <div className="font-semibold text-surface-800">
-            {session.status === 'uploading' ? getEstimatedTime() : 
+            {session.status === 'uploading' ? getEstimatedTime(session.totalSize, session.uploadedSize, session.startTime) : 
              session.status === 'completed' ? 'Complete' : 'Stopped'}
           </div>
           <div className="text-surface-600">Time remaining</div>
@@ -187,4 +114,4 @@ const UploadProgress = ({ session }) => {
   );
 };
 
-export default UploadProgress;
+export default UploadProgressCard;

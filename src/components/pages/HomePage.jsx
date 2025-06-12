@@ -1,13 +1,17 @@
-import { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-toastify';
-import DropZone from '../components/DropZone';
-import FileList from '../components/FileList';
-import UploadProgress from '../components/UploadProgress';
-import FilePreview from '../components/FilePreview';
-import { uploadService } from '../services';
+import { uploadService } from '@/services';
+import { generateThumbnail } from '@/utils/fileUtils';
 
-const Home = () => {
+import DropZoneArea from '@/components/molecules/DropZoneArea';
+import UploadProgressCard from '@/components/molecules/UploadProgressCard';
+import FileList from '@/components/organisms/FileList';
+import FilePreviewModal from '@/components/organisms/FilePreviewModal';
+import FileTypeFilter from '@/components/organisms/FileTypeFilter';
+import UploadControls from '@/components/organisms/UploadControls';
+
+const HomePage = () => {
   const [files, setFiles] = useState([]);
   const [uploadSession, setUploadSession] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
@@ -59,42 +63,6 @@ const Home = () => {
     }
   }, [allowedTypes]);
 
-  const generateThumbnail = (file) => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const img = new Image();
-        img.onload = () => {
-          const canvas = document.createElement('canvas');
-          const ctx = canvas.getContext('2d');
-          const maxSize = 100;
-          
-          let { width, height } = img;
-          if (width > height) {
-            if (width > maxSize) {
-              height = (height * maxSize) / width;
-              width = maxSize;
-            }
-          } else {
-            if (height > maxSize) {
-              width = (width * maxSize) / height;
-              height = maxSize;
-            }
-          }
-          
-          canvas.width = width;
-          canvas.height = height;
-          ctx.drawImage(img, 0, 0, width, height);
-          resolve(canvas.toDataURL());
-        };
-        img.onerror = reject;
-        img.src = e.target.result;
-      };
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
-  };
-
   const startUpload = async () => {
     const pendingFiles = files.filter(f => f.status === 'pending');
     if (pendingFiles.length === 0) {
@@ -114,7 +82,7 @@ const Home = () => {
     setUploadSession(session);
     
     try {
-      // Upload files concurrently but limit to 3 at a time
+      // Upload files concurrently but limit to 3 at a time (mock implementation detail)
       const uploadPromises = pendingFiles.map(file => uploadFile(file));
       await Promise.all(uploadPromises);
       
@@ -149,17 +117,19 @@ const Home = () => {
           // Update session progress
           setUploadSession(prev => {
             if (!prev) return null;
-            const currentFile = files.find(f => f.id === fileItem.id);
-            if (!currentFile) return prev;
-            
-            const progressBytes = (currentFile.size * progress) / 100;
-            const otherFilesProgress = files
-              .filter(f => f.id !== fileItem.id && f.status === 'completed')
-              .reduce((sum, f) => sum + f.size, 0);
+            // Recalculate uploadedSize based on all files
+            const currentTotalUploadedSize = files.reduce((sum, f) => {
+                if (f.id === fileItem.id) {
+                    return sum + (f.size * progress) / 100;
+                } else if (f.status === 'completed') {
+                    return sum + f.size;
+                }
+                return sum;
+            }, 0);
             
             return {
               ...prev,
-              uploadedSize: otherFilesProgress + progressBytes
+              uploadedSize: currentTotalUploadedSize
             };
           });
         }
@@ -202,13 +172,6 @@ const Home = () => {
     toast.success('Upload queue cleared');
   };
 
-  const typeFilters = [
-    { label: 'All Files', value: [] },
-    { label: 'Images', value: ['jpg', 'jpeg', 'png', 'gif', 'webp'] },
-    { label: 'Documents', value: ['pdf', 'doc', 'docx', 'txt'] },
-    { label: 'Media', value: ['mp4', 'mp3', 'avi', 'mov'] },
-  ];
-
   return (
     <div className="min-h-screen bg-transparent">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -226,29 +189,7 @@ const Home = () => {
         </motion.div>
 
         {/* File Type Filter */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="mb-6"
-        >
-          <div className="flex flex-wrap items-center gap-3">
-            <span className="text-sm font-medium text-surface-700">Filter by type:</span>
-            {typeFilters.map((filter, index) => (
-              <button
-                key={index}
-                onClick={() => setAllowedTypes(filter.value)}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                  JSON.stringify(allowedTypes) === JSON.stringify(filter.value)
-                    ? 'bg-gradient-to-r from-primary to-secondary text-white shadow-md'
-                    : 'bg-white/60 text-surface-700 hover:bg-white/80'
-                }`}
-              >
-                {filter.label}
-              </button>
-            ))}
-          </div>
-        </motion.div>
+        <FileTypeFilter allowedTypes={allowedTypes} setAllowedTypes={setAllowedTypes} />
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Upload Section */}
@@ -258,38 +199,20 @@ const Home = () => {
             transition={{ delay: 0.2 }}
             className="space-y-6"
           >
-            <DropZone
+            <DropZoneArea
               onFilesSelected={handleFilesSelected}
               allowedTypes={allowedTypes}
               fileInputRef={fileInputRef}
             />
             
             {files.length > 0 && (
-              <div className="flex flex-wrap gap-3">
-                <button
-                  onClick={startUpload}
-                  disabled={!files.some(f => f.status === 'pending') || uploadSession?.status === 'uploading'}
-                  className="flex-1 min-w-[120px] px-6 py-3 bg-gradient-to-r from-primary to-secondary text-white rounded-lg font-medium hover:shadow-lg hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 transition-all"
-                >
-                  Upload Files
-                </button>
-                
-                <button
-                  onClick={clearCompleted}
-                  disabled={!files.some(f => f.status === 'completed')}
-                  className="px-4 py-3 bg-accent text-white rounded-lg font-medium hover:shadow-lg hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 transition-all"
-                >
-                  Clear Completed
-                </button>
-                
-                <button
-                  onClick={resetAll}
-                  disabled={uploadSession?.status === 'uploading'}
-                  className="px-4 py-3 bg-surface-500 text-white rounded-lg font-medium hover:bg-surface-600 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 transition-all"
-                >
-                  Reset All
-                </button>
-              </div>
+              <UploadControls 
+                files={files}
+                uploadSession={uploadSession}
+                startUpload={startUpload}
+                clearCompleted={clearCompleted}
+                resetAll={resetAll}
+              />
             )}
           </motion.div>
 
@@ -301,7 +224,7 @@ const Home = () => {
             className="space-y-6"
           >
             {uploadSession && (
-              <UploadProgress session={uploadSession} />
+              <UploadProgressCard session={uploadSession} />
             )}
             
             {files.length > 0 && (
@@ -317,7 +240,7 @@ const Home = () => {
         {/* File Preview Modal */}
         <AnimatePresence>
           {selectedFile && (
-            <FilePreview
+            <FilePreviewModal
               file={selectedFile}
               onClose={() => setSelectedFile(null)}
             />
@@ -328,4 +251,4 @@ const Home = () => {
   );
 };
 
-export default Home;
+export default HomePage;

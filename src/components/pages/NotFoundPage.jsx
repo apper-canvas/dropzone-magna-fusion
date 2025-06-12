@@ -1,8 +1,10 @@
+import React from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import ApperIcon from '../components/ApperIcon';
+import ApperIcon from '@/components/ApperIcon';
+import Button from '@/components/atoms/Button';
 
-const NotFound = () => {
+const NotFoundPage = () => {
   const navigate = useNavigate();
 
   return (
@@ -34,17 +36,15 @@ const NotFound = () => {
           </p>
         </div>
         
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
+        <Button
           onClick={() => navigate('/')}
           className="px-8 py-3 bg-gradient-to-r from-primary to-secondary text-white rounded-lg font-medium hover:shadow-lg transition-all"
         >
           Back to DropZone
-        </motion.button>
+        </Button>
       </motion.div>
     </div>
   );
 };
 
-export default NotFound;
+export default NotFoundPage;
