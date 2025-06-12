@@ -4,9 +4,10 @@ import ApperIcon from '@/components/ApperIcon';
 import ProgressBar from '@/components/atoms/ProgressBar';
 import { formatFileSize, getStatusIconName, getStatusColorClass, getFileTypeIconName } from '@/utils/fileUtils';
 
-const FileItem = ({ file, onRemoveFile, onPreviewFile, index }) => {
+const FileItem = React.forwardRef(({ file, onRemoveFile, onPreviewFile, index }, ref) => {
   return (
     <motion.div
+      ref={ref}
       key={file.id}
       initial={{ opacity: 0, y: 20, scale: 0.95 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -93,6 +94,9 @@ const FileItem = ({ file, onRemoveFile, onPreviewFile, index }) => {
       </div>
     </motion.div>
   );
-};
+});
+
+// Add display name for better debugging
+FileItem.displayName = 'FileItem';
 
 export default FileItem;
