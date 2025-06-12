@@ -1,0 +1,47 @@
+[
+  {
+    "id": "upload_1703123456789",
+    "filename": "presentation.pdf",
+    "size": 2048576,
+    "type": "application/pdf",
+    "uploadedAt": "2024-01-15T10:30:00.000Z",
+    "status": "completed",
+    "url": "https://example.com/uploads/presentation.pdf"
+  },
+  {
+    "id": "upload_1703123456790",
+    "filename": "vacation-photo.jpg",
+    "size": 3145728,
+    "type": "image/jpeg",
+    "uploadedAt": "2024-01-15T11:15:00.000Z",
+    "status": "completed",
+    "url": "https://example.com/uploads/vacation-photo.jpg"
+  },
+  {
+    "id": "upload_1703123456791",
+    "filename": "quarterly-report.xlsx",
+    "size": 1572864,
+    "type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    "uploadedAt": "2024-01-15T12:00:00.000Z",
+    "status": "completed",
+    "url": "https://example.com/uploads/quarterly-report.xlsx"
+  },
+  {
+    "id": "upload_1703123456792",
+    "filename": "project-demo.mp4",
+    "size": 52428800,
+    "type": "video/mp4",
+    "uploadedAt": "2024-01-15T13:45:00.000Z",
+    "status": "completed",
+    "url": "https://example.com/uploads/project-demo.mp4"
+  },
+  {
+    "id": "upload_1703123456793",
+    "filename": "meeting-notes.docx",
+    "size": 524288,
+    "type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "uploadedAt": "2024-01-15T14:20:00.000Z",
+    "status": "completed",
+    "url": "https://example.com/uploads/meeting-notes.docx"
+  }
+]
