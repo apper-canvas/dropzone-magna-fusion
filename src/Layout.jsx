@@ -25,7 +25,7 @@ const Layout = () => {
                   </svg>
                 </div>
                 <h1 className="text-xl font-bold font-heading gradient-text">
-                  DropZone
+Bhushan
                 </h1>
               </motion.div>
               
